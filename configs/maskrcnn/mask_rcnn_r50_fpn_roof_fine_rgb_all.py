@@ -1,8 +1,8 @@
 _base_ = [
-    '../mmdetection/configs/_base_/models/mask_rcnn_r50_fpn.py',
-    '../mmdetection/configs/_base_/datasets/coco_instance.py',
-    '../mmdetection/configs/_base_/schedules/schedule_1x.py', 
-    '../mmdetection/configs/_base_/default_runtime.py'
+    '../../mmdetection/configs/_base_/models/mask_rcnn_r50_fpn.py',
+    '../../mmdetection/configs/_base_/datasets/coco_instance.py',
+    '../../mmdetection/configs/_base_/schedules/schedule_1x.py', 
+    '../../mmdetection/configs/_base_/default_runtime.py'
 ]
 
 CLASSES = (
@@ -16,7 +16,7 @@ CLASSES = (
     "mansard_roof", 
     "pyramid_roof", 
     "arched_roof",
-    "revolved",
+    "dome",
     "other"
 )
 model = dict(
@@ -73,22 +73,22 @@ data = dict(
         oversample_thr=0.3,
         dataset=dict(
         type=dataset_type,
-        ann_file=data_root + 'train/annotations/train.json',
-        img_prefix=data_root + 'train/images/rgb/train/',
+        ann_file=data_root + 'roof_fine_train.json',
+        img_prefix='data/All',
         pipeline=train_pipeline,
         classes=CLASSES
         )
     ),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'train/annotations/val.json',
-        img_prefix=data_root + 'train/images/rgb/val/',
+        ann_file=data_root + 'annotations/val.json',
+        img_prefix=data_root + 'rgb/val/',
         pipeline=test_pipeline,
         classes=CLASSES),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'image_ids/image_id_val.json',
-        img_prefix=data_root + 'val/rgb/',
+        ann_file='data/track1/image_ids/val.json',
+        img_prefix='data/track1/val/rgb',
         pipeline=test_pipeline,
         classes=CLASSES))
 
@@ -102,7 +102,7 @@ lr_config = dict(
     warmup_iters=500,
     warmup_ratio=0.001,
     step=[24, 33])
-runner = dict(type='EpochBasedRunner', max_epochs=36)
+runner = dict(type='EpochBasedRunner', max_epochs=100)
 auto_scale_lr = dict(enable=True, base_batch_size=16)
 checkpoint_config = dict(interval=1)
 log_config = dict(
@@ -111,3 +111,5 @@ log_config = dict(
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook')
     ])
+workflow = [('train', 1)]
+evaluation = dict(metric=['segm'])

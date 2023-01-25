@@ -22,7 +22,7 @@ conda activate roof-detective-dfc2023
 **Step 4.** Install [MMCV](https://github.com/open-mmlab/mmcv) using [MIM](https://github.com/open-mmlab/mim) 
 ```
 pip install -U openmim
-mim install mmcv-full`
+mim install mmcv-full
 ```
 
 **Step 5.** Install pycocotools, mmengine and MMDetection 
@@ -46,3 +46,15 @@ python demo/image_demo.py demo/demo.jpg yolov3_mobilenetv2_320_300e_coco.py yolo
 ```
 
 You will see a new image `result.jpg` on your current folder, where bounding boxes are plotted on cars, benches, etc.
+
+## Training
+
+```
+python tools/train.py $CONFIG --work-dir $CHECKPOINT_DIR
+```
+
+## Testing
+
+```
+python tools/test.py $CONFIG $checkpoint --format-only --eval-options "jsonfile_prefix=$SAVE_PATH"
+```

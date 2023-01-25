@@ -35,7 +35,7 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 
 dataset_type = 'CocoDataset'
-data_root = 'data/track1/train-all/'
+data_root = 'data/track1/train-small/'
 SIZE = [(512, 512), (864, 864)]
 flip_ratio = 0.5
 train_pipeline = [
@@ -111,5 +111,5 @@ log_config = dict(
         dict(type='TextLoggerHook'),
         dict(type='TensorboardLoggerHook')
     ])
-workflow = [('train', 1)]
+workflow = [('train', 1), ('val', 1)]
 evaluation = dict(metric=['segm'])

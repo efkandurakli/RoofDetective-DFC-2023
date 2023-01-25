@@ -6,7 +6,7 @@ dataset_type = 'CocoDataset'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 dataset_type = 'CocoDataset'
-data_root = 'data/track1/train-all/'
+data_root = 'data/track1/train-small/'
 SIZE = [(512, 512), (864, 864)]
 flip_ratio = 0.5
 train_pipeline = [
@@ -39,80 +39,28 @@ data = dict(
     samples_per_gpu=2,
     workers_per_gpu=2,
     train=dict(
-        type='CocoDataset',
-        ann_file=data_root + 'annotations/train.json',
-        img_prefix=data_root + 'rgb/train',
-        classes=CLASSES,
-        pipeline=[
-            dict(type='LoadImageFromFile'),
-            dict(
-                type='LoadAnnotations',
-                with_bbox=True,
-                with_mask=True),
-            dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
-            dict(type='RandomFlip', flip_ratio=0.5),
-            dict(
-                type='Normalize',
-                mean=[123.675, 116.28, 103.53],
-                std=[58.395, 57.12, 57.375],
-                to_rgb=True),
-            dict(type='Pad', size_divisor=32),
-            dict(type='DefaultFormatBundle'),
-            dict(
-                type='Collect',
-                keys=[
-                    'img', 'gt_bboxes', 'gt_labels', 'gt_masks'
-                ])
-        ]),
+        type='ClassBalancedDataset',
+        oversample_thr=0.3,
+        dataset=dict(
+            type=dataset_type, 
+            pipeline=train_pipeline,
+            ann_file=data_root + 'annotations/train.json',
+            img_prefix=data_root + 'rgb/train',
+            classes=CLASSES)
+        ),
     val=dict(
         type='CocoDataset',
         ann_file=data_root + 'annotations/val.json',
         img_prefix=data_root + 'rgb/val',
         classes=CLASSES,
-        pipeline=[
-            dict(type='LoadImageFromFile'),
-            dict(
-                type='MultiScaleFlipAug',
-                img_scale=(1333, 800),
-                flip=False,
-                transforms=[
-                    dict(type='Resize', keep_ratio=True),
-                    dict(type='RandomFlip', flip_ratio=0.5),
-                    dict(
-                        type='Normalize',
-                        mean=[123.675, 116.28, 103.53],
-                        std=[58.395, 57.12, 57.375],
-                        to_rgb=True),
-                    dict(type='Pad', size_divisor=32),
-                    dict(type='ImageToTensor', keys=['img']),
-                    dict(type='Collect', keys=['img'])
-                ])
-        ]),
+        pipeline=test_pipeline),
     test=dict(
         type='CocoDataset',
         ann_file='data/track1/image_ids/val.json',
         img_prefix='data/track1/val/rgb',
         classes=CLASSES,
-        pipeline=[
-            dict(type='LoadImageFromFile'),
-            dict(
-                type='MultiScaleFlipAug',
-                img_scale=(1333, 800),
-                flip=False,
-                transforms=[
-                    dict(type='Resize', keep_ratio=True),
-                    dict(type='RandomFlip', flip_ratio=0.5),
-                    dict(
-                        type='Normalize',
-                        mean=[123.675, 116.28, 103.53],
-                        std=[58.395, 57.12, 57.375],
-                        to_rgb=True),
-                    dict(type='Pad', size_divisor=32),
-                    dict(type='ImageToTensor', keys=['img']),
-                    dict(type='Collect', keys=['img'])
-                ])
-        ]))
-evaluation = dict(metric=['segm'])
+        pipeline=test_pipeline))
+
 optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(
@@ -129,7 +77,6 @@ dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None
 resume_from = None
-workflow = [('train', 1)]
 opencv_num_threads = 0
 mp_start_method = 'fork'
 auto_scale_lr = dict(enable=False, base_batch_size=16)
@@ -348,3 +295,6 @@ model = dict(
             nms=dict(type='nms', iou_threshold=0.5),
             max_per_img=100,
             mask_thr_binary=0.5)))
+
+workflow = [('train', 1), ('val', 1)]
+evaluation = dict(metric=['segm'])

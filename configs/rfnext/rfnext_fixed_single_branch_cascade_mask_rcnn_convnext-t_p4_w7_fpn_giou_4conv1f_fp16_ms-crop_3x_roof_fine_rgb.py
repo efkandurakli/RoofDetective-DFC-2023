@@ -74,7 +74,7 @@ model = dict(
                     target_stds=[0.1, 0.1, 0.2, 0.2]),
                 reg_class_agnostic=False,
                 reg_decoded_bbox=True,
-                norm_cfg=dict(type='SyncBN', requires_grad=True),
+                norm_cfg=dict(type='BN', requires_grad=True),
                 loss_cls=dict(
                     type='CrossEntropyLoss',
                     use_sigmoid=False,
@@ -95,7 +95,7 @@ model = dict(
                     target_stds=[0.05, 0.05, 0.1, 0.1]),
                 reg_class_agnostic=False,
                 reg_decoded_bbox=True,
-                norm_cfg=dict(type='SyncBN', requires_grad=True),
+                norm_cfg=dict(type='BN', requires_grad=True),
                 loss_cls=dict(
                     type='CrossEntropyLoss',
                     use_sigmoid=False,
@@ -116,7 +116,7 @@ model = dict(
                     target_stds=[0.033, 0.033, 0.067, 0.067]),
                 reg_class_agnostic=False,
                 reg_decoded_bbox=True,
-                norm_cfg=dict(type='SyncBN', requires_grad=True),
+                norm_cfg=dict(type='BN', requires_grad=True),
                 loss_cls=dict(
                     type='CrossEntropyLoss',
                     use_sigmoid=False,
@@ -224,7 +224,7 @@ model = dict(
             max_per_img=100,
             mask_thr_binary=0.5)))
 dataset_type = 'CocoDataset'
-data_root = 'data/coco/'
+data_root = 'data/track1/train-small/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -296,122 +296,34 @@ test_pipeline = [
             dict(type='Collect', keys=['img'])
         ])
 ]
-dataset_type = 'CocoDataset'
-data_root = 'data/track1/train-small/'
 data = dict(
     samples_per_gpu=2,
     workers_per_gpu=2,
     train=dict(
-        type='CocoDataset',
+        type='ClassBalancedDataset',
+        oversample_thr=0.3,
+        dataset=dict(
+        type=dataset_type,
         ann_file=data_root + 'annotations/train.json',
         img_prefix=data_root + 'rgb/train',
-        classes=CLASSES,
-        pipeline=[
-            dict(type='LoadImageFromFile'),
-            dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
-            dict(type='RandomFlip', flip_ratio=0.5),
-            dict(
-                type='AutoAugment',
-                policies=[[{
-                    'type':
-                    'Resize',
-                    'img_scale': [(480, 1333), (512, 1333), (544, 1333),
-                                  (576, 1333), (608, 1333), (640, 1333),
-                                  (672, 1333), (704, 1333), (736, 1333),
-                                  (768, 1333), (800, 1333)],
-                    'multiscale_mode':
-                    'value',
-                    'keep_ratio':
-                    True
-                }],
-                          [{
-                              'type': 'Resize',
-                              'img_scale': [(400, 1333), (500, 1333),
-                                            (600, 1333)],
-                              'multiscale_mode': 'value',
-                              'keep_ratio': True
-                          }, {
-                              'type': 'RandomCrop',
-                              'crop_type': 'absolute_range',
-                              'crop_size': (384, 600),
-                              'allow_negative_crop': True
-                          }, {
-                              'type':
-                              'Resize',
-                              'img_scale': [(480, 1333), (512, 1333),
-                                            (544, 1333), (576, 1333),
-                                            (608, 1333), (640, 1333),
-                                            (672, 1333), (704, 1333),
-                                            (736, 1333), (768, 1333),
-                                            (800, 1333)],
-                              'multiscale_mode':
-                              'value',
-                              'override':
-                              True,
-                              'keep_ratio':
-                              True
-                          }]]),
-            dict(
-                type='Normalize',
-                mean=[123.675, 116.28, 103.53],
-                std=[58.395, 57.12, 57.375],
-                to_rgb=True),
-            dict(type='Pad', size_divisor=32),
-            dict(type='DefaultFormatBundle'),
-            dict(
-                type='Collect',
-                keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks'])
-        ]),
+        pipeline=train_pipeline,
+        classes=CLASSES
+        )
+    ),
     val=dict(
-        type='CocoDataset',
+        type=dataset_type,
         ann_file=data_root + 'annotations/val.json',
         img_prefix=data_root + 'rgb/val/',
-        classes=CLASSES,
-        pipeline=[
-            dict(type='LoadImageFromFile'),
-            dict(
-                type='MultiScaleFlipAug',
-                img_scale=(1333, 800),
-                flip=False,
-                transforms=[
-                    dict(type='Resize', keep_ratio=True),
-                    dict(type='RandomFlip'),
-                    dict(
-                        type='Normalize',
-                        mean=[123.675, 116.28, 103.53],
-                        std=[58.395, 57.12, 57.375],
-                        to_rgb=True),
-                    dict(type='Pad', size_divisor=32),
-                    dict(type='ImageToTensor', keys=['img']),
-                    dict(type='Collect', keys=['img'])
-                ])
-        ]),
+        pipeline=test_pipeline,
+        classes=CLASSES),
     test=dict(
-        type='CocoDataset',
+        type=dataset_type,
         ann_file='data/track1/image_ids/val.json',
         img_prefix='data/track1/val/rgb',
-        classes=CLASSES,
-        pipeline=[
-            dict(type='LoadImageFromFile'),
-            dict(
-                type='MultiScaleFlipAug',
-                img_scale=(1333, 800),
-                flip=False,
-                transforms=[
-                    dict(type='Resize', keep_ratio=True),
-                    dict(type='RandomFlip'),
-                    dict(
-                        type='Normalize',
-                        mean=[123.675, 116.28, 103.53],
-                        std=[58.395, 57.12, 57.375],
-                        to_rgb=True),
-                    dict(type='Pad', size_divisor=32),
-                    dict(type='ImageToTensor', keys=['img']),
-                    dict(type='Collect', keys=['img'])
-                ])
-        ]),
+        pipeline=test_pipeline,
+        classes=CLASSES),
     persistent_workers=True)
-evaluation = dict(metric=['bbox', 'segm'])
+evaluation = dict(metric=['segm'])
 optimizer = dict(
     constructor='LearningRateDecayOptimizerConstructor',
     type='AdamW',
@@ -426,7 +338,7 @@ lr_config = dict(
     warmup_iters=1000,
     warmup_ratio=0.001,
     step=[27, 33])
-runner = dict(type='EpochBasedRunner', max_epochs=36)
+runner = dict(type='EpochBasedRunner', max_epochs=50)
 checkpoint_config = dict(interval=1)
 log_config = dict(interval=50, hooks=[dict(type='TextLoggerHook')])
 custom_hooks = [
@@ -453,7 +365,7 @@ dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None
 resume_from = None
-workflow = [('train', 1)]
+workflow = [('train', 1), ('val', 1)]
 opencv_num_threads = 0
 mp_start_method = 'fork'
 auto_scale_lr = dict(enable=False, base_batch_size=16)

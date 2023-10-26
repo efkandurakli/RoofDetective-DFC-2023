@@ -1,5 +1,15 @@
 # RoofDetective-DFC-2023
 
+We participated in the [2023 IEEE Data Fusion Contest](https://ieee-dataport.org/competitions/2023-ieee-grss-data-fusion-contest-large-scale-fine-grained-building-classification) as a team known as "RoofDetective," an annual event. This year's competition featured two distinct tracks. Our team took part in Track 1, which focused on building detection and roof type classification. For more information on our approach, you can access our detailed report through this [link](https://drive.google.com/file/d/12s3AF_yKnMjdsS8QgL_F-MFbqXEdMT5G/view?usp=drive_link). We ranked 21st among approximately 200 teams across the world.
+
+## Team Members
+
+- Assoc. Prof. Dr. Erchan Aptoula (Sabanci University)
+- Efkan Durakli (Gebze Technical University)
+- Deren Ege Turan (Sabanci University)
+- Ekin Beyazit (Sabanci University)
+- Emirhan Böge (Sabanci University)
+
 ## Installation 
 
 **Step 1.** clone repository and update submodules
